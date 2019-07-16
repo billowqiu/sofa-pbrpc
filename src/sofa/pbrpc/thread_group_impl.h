@@ -14,6 +14,7 @@
 #include <sofa/pbrpc/io_service.h>
 #include <sofa/pbrpc/ext_closure.h>
 #include <sofa/pbrpc/counter.h>
+#include <google/protobuf/stubs/callback.h>
 
 namespace sofa {
 namespace pbrpc {

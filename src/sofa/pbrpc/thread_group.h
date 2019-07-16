@@ -7,7 +7,7 @@
 
 #include <sofa/pbrpc/common.h>
 #include <sofa/pbrpc/ext_closure.h>
-
+#include <google/protobuf/stubs/callback.h>
 namespace sofa {
 namespace pbrpc {
 
