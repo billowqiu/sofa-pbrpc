@@ -56,20 +56,13 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
 endif()
 
 hunter_add_package(Boost)
-find_package(boost ${hunter_config} REQUIRED)
+find_package(Boost ${hunter_config} REQUIRED)
 list(APPEND LIBS Boost::boost)
 list(APPEND package_deps Boost)
 
 hunter_add_package(Protobuf)
 find_package(Protobuf CONFIG REQUIRED)
 list(APPEND LIBS protobuf::libprotobuf)
-
-# hunter_add_package(opentracing-cpp)
-# # Not `${hunter_config}` because OpenTracing provides its own
-# # OpenTracingConfig.cmake file
-# find_package(OpenTracing CONFIG REQUIRED)
-# list(APPEND LIBS OpenTracing::opentracing-static)
-# list(APPEND package_deps OpenTracing)
 
 hunter_add_package(Snappy)
 find_package(Snappy CONFIG REQUIRED)
