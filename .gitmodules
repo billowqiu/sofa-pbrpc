@@ -1,0 +1,3 @@
+[submodule "deps/jaeger-client-cpp"]
+	path = deps/jaeger-client-cpp
+	url = https://github.com/billowqiu/jaeger-client-cpp.git

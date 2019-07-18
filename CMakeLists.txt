@@ -74,6 +74,10 @@ find_package(ZLIB CONFIG REQUIRED)
 list(APPEND LIBS ZLIB::zlib)
 list(APPEND package_deps ZLIB)
 
+#jaeger-client-cpp
+add_subdirectory(deps/jaeger-client-cpp)
+list(APPEND LIBS ${jaegertracing-static})
+
 option(SOFA_BUILD_EXAMPLES "Build examples" ON)
 
 include(CTest)
@@ -92,7 +96,11 @@ endif()
 # PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS 
 #   src/sofa/pbrpc/rpc_meta.proto src/sofa/pbrpc/rpc_option.proto src/sofa/pbrpc/builtin_service.proto)
 
-set(MESSAGES_PROTOS src/sofa/pbrpc/rpc_option.proto src/sofa/pbrpc/rpc_meta.proto src/sofa/pbrpc/builtin_service.proto)
+set(MESSAGES_PROTOS 
+  src/sofa/pbrpc/rpc_option.proto 
+  src/sofa/pbrpc/rpc_meta.proto 
+  src/sofa/pbrpc/builtin_service.proto
+  src/sofa/pbrpc/rpc_telemetry.proto)
 set(MESSAGES_SRCS)
 set(MESSAGES_HDRS)
 
@@ -137,7 +145,6 @@ set(SRC
     # src/sofa/pbrpc/boost_system_error_code.cc
     src/sofa/pbrpc/buffer.cc
     src/sofa/pbrpc/builtin_service_impl.cc
-    # src/sofa/pbrpc/builtin_service.pb.cc
     src/sofa/pbrpc/common_internal.cc
     src/sofa/pbrpc/common.cc
     src/sofa/pbrpc/compressed_stream.cc
@@ -156,8 +163,6 @@ set(SRC
     src/sofa/pbrpc/rpc_controller.cc
     src/sofa/pbrpc/rpc_endpoint.cc
     src/sofa/pbrpc/rpc_error_code.cc
-    # src/sofa/pbrpc/rpc_meta.pb.cc
-    # src/sofa/pbrpc/rpc_option.pb.cc
     src/sofa/pbrpc/rpc_request_parser.cc
     src/sofa/pbrpc/rpc_request.cc
     src/sofa/pbrpc/rpc_server_impl.cc
@@ -171,6 +176,7 @@ set(SRC
     src/sofa/pbrpc/web_service.cc)
 
 function(add_lib_deps lib)
+  message(STATUS "add lib: ${lib}")
   target_include_directories(${lib} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>)
@@ -179,8 +185,7 @@ function(add_lib_deps lib)
 endfunction()
 
 add_library(sofa-pbrpc STATIC ${SRC})
-set_target_properties(sofa-pbrpc PROPERTIES
-  OUTPUT_NAME sofa-pbrpc)
+set_target_properties(sofa-pbrpc PROPERTIES OUTPUT_NAME sofa-pbrpc)
 add_lib_deps(sofa-pbrpc)
 if(NOT SOFA-PBRPC_LIB)
   set(SOFA-PBRPC_LIB sofa-pbrpc)
