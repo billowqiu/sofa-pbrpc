@@ -37,6 +37,7 @@ void BinaryRpcRequest::ProcessRequest(
         const RpcServerStreamWPtr& stream,
         const ServicePoolPtr& service_pool)
 {
+    SLOG(INFO, "BinaryRpcRequest::ProcessRequest req meta: %s", _req_meta.ShortDebugString().c_str());
     std::string service_name;
     std::string method_name;
     if (!ParseMethodFullName(_req_meta.method(), &service_name, &method_name))
@@ -108,6 +109,8 @@ void BinaryRpcRequest::ProcessRequest(
 
     RpcController* controller = new RpcController();
     const RpcControllerImplPtr& cntl = controller->impl();
+    // 基于reqmeta中的tracing上下文，创建in bound的span
+
     cntl->SetSequenceId(_req_meta.sequence_id());
     cntl->SetMethodId(_req_meta.method());
     cntl->SetLocalEndpoint(_local_endpoint);

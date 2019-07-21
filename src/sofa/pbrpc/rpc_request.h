@@ -20,6 +20,7 @@ namespace pbrpc {
 class RpcRequest;
 typedef sofa::pbrpc::shared_ptr<RpcRequest> RpcRequestPtr;
 
+// 代表一个在服务端解析出来的请求，客户端的请求没有单独的对象表示
 class RpcRequest : public sofa::pbrpc::enable_shared_from_this<RpcRequest>
 {
 public:

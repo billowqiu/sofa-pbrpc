@@ -1,10 +1,5 @@
 cmake_minimum_required(VERSION 3.3)
 
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/toolchain.cmake"
@@ -21,9 +16,13 @@ HunterGate(
     URL "https://github.com/ruslo/hunter/archive/v0.23.165.tar.gz"
     SHA1 "5a73f91df5f6109c0bb1104d0c0ee423f7bece79"
 )
-
-
 project(sofa-pbrpc VERSION 0.5.0)
+
+set(CMAKE_VERBOSE_MAKEFILE TRUE)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 option(SOFA_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
 
@@ -76,7 +75,11 @@ list(APPEND package_deps ZLIB)
 
 #jaeger-client-cpp
 add_subdirectory(deps/jaeger-client-cpp)
-list(APPEND LIBS ${jaegertracing-static})
+list(APPEND LIBS jaegertracing-static)
+
+
+include_directories(deps/jaeger-client-cpp/src)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/deps/jaeger-client-cpp/src)
 
 option(SOFA_BUILD_EXAMPLES "Build examples" ON)
 
@@ -176,7 +179,7 @@ set(SRC
     src/sofa/pbrpc/web_service.cc)
 
 function(add_lib_deps lib)
-  message(STATUS "add lib: ${lib}")
+  message(STATUS "add LIBS: ${LIBS}")
   target_include_directories(${lib} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>)

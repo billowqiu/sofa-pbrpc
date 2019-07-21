@@ -266,6 +266,24 @@ void RpcClientImpl::CallMethod(const google::protobuf::Message* request,
     meta.set_compress_type(cntl->RequestCompressType());
     meta.set_expected_response_compress_type(cntl->ResponseCompressType());
 
+    // 进程间传递
+    if (cntl->Span())
+    {
+        RpcTelemetry* telemetry = meta.mutable_telemetry();
+        const jaegertracing::SpanContext* spancontext = dynamic_cast<const jaegertracing::SpanContext*>(&cntl->Span()->context());
+        telemetry->set_trace_high_id(spancontext->traceID().high());
+        telemetry->set_trace_low_id(spancontext->traceID().low());
+        telemetry->set_span_id(spancontext->spanID());
+        telemetry->set_parent_id(spancontext->parentID());
+        telemetry->set_flags(spancontext->flags());
+        telemetry->set_debug_id(spancontext->debugID());
+        google::protobuf::Map< ::std::string, ::std::string >* baggage = telemetry->mutable_baggage();
+        for(auto kv : spancontext->baggage())
+        {
+            (*baggage)[kv.first] = kv.second;
+        }
+    }
+
     RpcMessageHeader header;
     int header_size = sizeof(header);
     WriteBuffer write_buffer;

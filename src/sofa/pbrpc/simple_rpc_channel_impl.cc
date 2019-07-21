@@ -5,6 +5,7 @@
 #include <sofa/pbrpc/simple_rpc_channel_impl.h>
 #include <sofa/pbrpc/mock_test_helper.h>
 #include <sofa/pbrpc/closure.h>
+#include <sofa/pbrpc/tracing.h>
 
 namespace sofa {
 namespace pbrpc {
@@ -83,6 +84,7 @@ void SimpleRpcChannelImpl::CallMethod(const ::google::protobuf::MethodDescriptor
     RpcController* sofa_controller = dynamic_cast<RpcController*>(controller);
     SCHECK(sofa_controller != NULL); // should be sofa::pbrpc::RpcController
     RpcControllerImplPtr cntl = sofa_controller->impl();
+    // RpcClientImpl::DoneCallback 在后面也被push进去了
     cntl->PushDoneCallback(boost::bind(&SimpleRpcChannelImpl::DoneCallback,
                 shared_from_this(), done, _1));
     cntl->FillFromMethodDescriptor(method);
@@ -90,6 +92,16 @@ void SimpleRpcChannelImpl::CallMethod(const ::google::protobuf::MethodDescriptor
     {
         cntl->SetSync(); // null done means sync call
         cntl->SetWaitEvent(WaitEventPtr(new WaitEvent()));
+    }
+    // start out bound request
+    std::unique_ptr<opentracing::Span> span = Tracing::startOutboundSpan(method->full_name());
+    if (span)
+    {
+        cntl->SetSpan(std::move(span));
+    }
+    if (!cntl->IsSync())
+    {
+        cntl->SetParentSpanContext(jaegertracing::Context::Current().GetSpanContext());
     }
 
     // check if mocked
@@ -174,6 +186,9 @@ void SimpleRpcChannelImpl::DoneCallback(google::protobuf::Closure* done,
     }
     else
     {
+        // 恢复异步场景下的parent
+        jaegertracing::SpanContext parent_spancontext = cntl->ParentSpanContext();
+        jaegertracing::Context::Current().SetSpanContext(parent_spancontext);
         SCHECK(done != NULL);
         _client_impl->GetCallbackThreadGroup()->post(done);
     }

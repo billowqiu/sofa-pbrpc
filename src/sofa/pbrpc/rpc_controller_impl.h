@@ -17,6 +17,7 @@
 #include <sofa/pbrpc/rpc_error_code.h>
 #include <sofa/pbrpc/rpc_option.pb.h>
 #include <sofa/pbrpc/wait_event.h>
+#include <sofa/pbrpc/tracing.h>
 
 namespace sofa {
 namespace pbrpc {
@@ -226,6 +227,10 @@ public:
                 _done_callbacks.pop_back();
             }
         }
+        if(_span)
+        {
+            _span->SetTag("error", error_code);
+        }
     }
 
     void FillFromMethodDescriptor(const google::protobuf::MethodDescriptor* method)
@@ -433,6 +438,26 @@ public:
         return *_http_headers;
     }
 
+    void SetSpan(std::unique_ptr<opentracing::Span> span)
+    {
+        _span.swap(span);
+    }
+
+    const std::unique_ptr<opentracing::Span>& Span() const
+    {
+        return _span;
+    }
+
+    void SetParentSpanContext(const jaegertracing::SpanContext& spancontext)
+    {
+        _parent_spancontext = spancontext;
+    }
+
+    const jaegertracing::SpanContext& ParentSpanContext() const
+    {
+        return _parent_spancontext;
+    }
+
 private:
     uint64 _sequence_id;
     std::string _method_id;
@@ -481,7 +506,15 @@ private:
     const std::string* _http_path;
     const std::map<std::string, std::string>* _http_query_params;
     const std::map<std::string, std::string>* _http_headers;
+    // 在请求的合适阶段设置：
+    //      对于发出去的请求在SimpleRpcChannelImpl::CallMethod里面，对应client_send
+    //      对于受到的请求，在BinaryRpcRequest::ProcessRequest里面，对应server_recv
+    std::unique_ptr<opentracing::Span> _span;
 
+    // 对于客户端的异步请求，需要考虑一种场景：
+    //    A -> B 异步调用
+    //    A -> C 需要等B回包给A之后才能调用，那么就需要在B回包之后，将创建A的parentspan（或者是将A的span?）的给还原回来，再调用C，以便将调用链串起来
+    jaegertracing::SpanContext _parent_spancontext;
     SOFA_PBRPC_DISALLOW_EVIL_CONSTRUCTORS(RpcControllerImpl);
 }; // class RpcControllerImpl
 

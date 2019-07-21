@@ -433,6 +433,7 @@ void RpcServerImpl::OnAcceptFailed(RpcErrorCode error_code, const std::string& e
     }
 }
 
+// 受到一个完整的请求
 void RpcServerImpl::OnReceived(const RpcServerStreamWPtr& stream, const RpcRequestPtr& request)
 {
     if (!_is_running)
