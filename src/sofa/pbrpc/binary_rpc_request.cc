@@ -146,7 +146,7 @@ void BinaryRpcRequest::ProcessRequest(
     // 基于reqmeta中的tracing上下文，创建in bound的span
     if (span)
     {
-        cntl->SetSpan(span);
+        cntl->SetSpan(std::move(span));
     }
     
     cntl->SetSequenceId(_req_meta.sequence_id());
