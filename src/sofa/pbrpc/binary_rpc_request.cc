@@ -6,7 +6,8 @@
 #include <sofa/pbrpc/compressed_stream.h>
 #include <sofa/pbrpc/rpc_error_code.h>
 #include <sofa/pbrpc/rpc_server_stream.h>
-
+#include <iterator>
+#include <algorithm>
 namespace sofa {
 namespace pbrpc {
 
@@ -38,6 +39,22 @@ void BinaryRpcRequest::ProcessRequest(
         const ServicePoolPtr& service_pool)
 {
     SLOG(INFO, "BinaryRpcRequest::ProcessRequest req meta: %s", _req_meta.ShortDebugString().c_str());
+    std::unique_ptr<opentracing::Span> span;
+    if (_req_meta.has_telemetry())
+    {
+        jaegertracing::SpanContext::StrMap baggage;
+        baggage.insert(_req_meta.telemetry().baggage().begin(), _req_meta.telemetry().baggage().end());
+
+        jaegertracing::SpanContext spancontext(jaegertracing::TraceID(_req_meta.telemetry().trace_high_id(), _req_meta.telemetry().trace_low_id()),
+                                                _req_meta.telemetry().span_id(), 
+                                                _req_meta.telemetry().parent_id(),
+                                                _req_meta.telemetry().flags(),
+                                                baggage,
+                                                _req_meta.telemetry().debug_id());
+        auto inbound_span = Tracing::startInboundSpan(_req_meta.method(), spancontext);
+        span.swap(inbound_span);
+    }
+    
     std::string service_name;
     std::string method_name;
     if (!ParseMethodFullName(_req_meta.method(), &service_name, &method_name))
@@ -53,6 +70,12 @@ void BinaryRpcRequest::ProcessRequest(
 #endif
         SendFailedResponse(stream,
                 RPC_ERROR_PARSE_METHOD_NAME, "method full name: " + _req_meta.method());
+        
+        if (span)
+        {
+            span->SetTag("error", RPC_ERROR_PARSE_METHOD_NAME);
+        }
+        
         return;
     }
 
@@ -70,6 +93,11 @@ void BinaryRpcRequest::ProcessRequest(
 #endif
         SendFailedResponse(stream,
                 RPC_ERROR_FOUND_METHOD, "method full name: " + _req_meta.method());
+        if (span)
+        {
+            span->SetTag("error", RPC_ERROR_FOUND_METHOD);
+        }
+
         return;
     }
 
@@ -101,6 +129,12 @@ void BinaryRpcRequest::ProcessRequest(
 #endif
         SendFailedResponse(stream,
                 RPC_ERROR_PARSE_REQUEST_MESSAGE, "method full name: " + _req_meta.method());
+
+        if (span)
+        {
+            span->SetTag("error", RPC_ERROR_PARSE_REQUEST_MESSAGE);
+        }
+
         delete request;
         return;
     }
@@ -110,7 +144,11 @@ void BinaryRpcRequest::ProcessRequest(
     RpcController* controller = new RpcController();
     const RpcControllerImplPtr& cntl = controller->impl();
     // 基于reqmeta中的tracing上下文，创建in bound的span
-
+    if (span)
+    {
+        cntl->SetSpan(span);
+    }
+    
     cntl->SetSequenceId(_req_meta.sequence_id());
     cntl->SetMethodId(_req_meta.method());
     cntl->SetLocalEndpoint(_local_endpoint);

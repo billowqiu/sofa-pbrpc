@@ -53,6 +53,9 @@ public:
             // All the bells and whistles:
             auto span = _tracer->StartSpanWithOptions(operation_name, options);
             // 服务端创建span，应该放到当前线程上下文中
+            const jaegertracing::SpanContext* spancontext = dynamic_cast<const jaegertracing::SpanContext*>(&span->context());
+            jaegertracing::Context::Current().SetSpanContext(*spancontext);
+            
             return span;
         }
 
