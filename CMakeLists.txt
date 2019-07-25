@@ -176,7 +176,8 @@ set(SRC
     src/sofa/pbrpc/thread_group.cc
     src/sofa/pbrpc/timeout_manager_impl.cc
     src/sofa/pbrpc/timeout_manager.cc
-    src/sofa/pbrpc/web_service.cc)
+    src/sofa/pbrpc/web_service.cc
+    src/sofa/pbrpc/tracing.cc)
 
 function(add_lib_deps lib)
   message(STATUS "add LIBS: ${LIBS}")

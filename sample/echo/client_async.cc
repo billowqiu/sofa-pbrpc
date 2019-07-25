@@ -4,6 +4,7 @@
 
 #include <unistd.h>
 #include <sofa/pbrpc/pbrpc.h>
+#include "sofa/pbrpc/tracing.h"
 #include "echo_service.pb.h"
 
 void EchoCallback(sofa::pbrpc::RpcController* cntl,
@@ -32,9 +33,22 @@ void EchoCallback(sofa::pbrpc::RpcController* cntl,
     *callbacked = true;
 }
 
+void setUpTracer(const char* configFilePath)
+{
+    auto configYAML = YAML::LoadFile(configFilePath);
+    auto config = jaegertracing::Config::parse(configYAML);
+    auto tracer = jaegertracing::Tracer::make(
+        "example-client", config, jaegertracing::logging::consoleLogger());
+    opentracing::Tracer::InitGlobal(
+        std::static_pointer_cast<opentracing::Tracer>(tracer));
+    sofa::pbrpc::Tracing::setTracer(tracer);
+}
+
 int main()
 {
     SOFA_PBRPC_SET_LOG_LEVEL(NOTICE);
+    setUpTracer("config.yml");
+    // sofa::pbrpc::Tracing::startOutboundSpan("client_test");
 
     // Define an rpc server.
     sofa::pbrpc::RpcClientOptions client_options;

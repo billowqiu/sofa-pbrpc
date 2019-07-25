@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <sofa/pbrpc/pbrpc.h>
 #include "echo_service.pb.h"
+#include "sofa/pbrpc/tracing.h"
 
 bool WebServlet(const sofa::pbrpc::HTTPRequest& request, sofa::pbrpc::HTTPResponse& response)
 {
@@ -68,8 +69,21 @@ void thread_dest_func()
     SLOG(INFO, "Destroy work thread succeed");
 }
 
+void setUpTracer(const char* configFilePath)
+{
+    auto configYAML = YAML::LoadFile(configFilePath);
+    auto config = jaegertracing::Config::parse(configYAML);
+    auto tracer = jaegertracing::Tracer::make(
+        "example-service", config, jaegertracing::logging::consoleLogger());
+    opentracing::Tracer::InitGlobal(
+        std::static_pointer_cast<opentracing::Tracer>(tracer));
+    sofa::pbrpc::Tracing::setTracer(tracer);
+}
+
 int main()
 {
+    setUpTracer("config.yml");
+    
     SOFA_PBRPC_SET_LOG_LEVEL(NOTICE);
 
     // Define an rpc server.
