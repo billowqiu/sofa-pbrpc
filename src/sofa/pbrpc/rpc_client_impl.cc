@@ -278,10 +278,7 @@ void RpcClientImpl::CallMethod(const google::protobuf::Message* request,
         telemetry->set_flags(spancontext->flags());
         telemetry->set_debug_id(spancontext->debugID());
         google::protobuf::Map< ::std::string, ::std::string >* baggage = telemetry->mutable_baggage();
-        for(auto kv : spancontext->baggage())
-        {
-            (*baggage)[kv.first] = kv.second;
-        }
+        baggage->insert(spancontext->baggage().begin(), spancontext->baggage().end());
     }
 
     RpcMessageHeader header;

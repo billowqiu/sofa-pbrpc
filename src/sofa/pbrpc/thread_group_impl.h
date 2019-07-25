@@ -15,6 +15,7 @@
 #include <sofa/pbrpc/ext_closure.h>
 #include <sofa/pbrpc/counter.h>
 #include <google/protobuf/stubs/callback.h>
+#include "jaegertracing/context/context.h"
 
 namespace sofa {
 namespace pbrpc {
@@ -208,7 +209,7 @@ public:
     template< typename CompletionHandler >
     void dispatch(CompletionHandler handler)
     {
-        _io_service.dispatch(handler);
+        _io_service.dispatch(jaegertracing::Context::Current().Wrap(handler));
     }
 
     // Request the thread group to invoke the given handler and return immediately.
@@ -218,7 +219,7 @@ public:
     template< typename CompletionHandler >
     void post(CompletionHandler handler)
     {
-        _io_service.post(handler);
+        _io_service.post(jaegertracing::Context::Current().Wrap(handler));
     }
 
     void dispatch(google::protobuf::Closure* handle)

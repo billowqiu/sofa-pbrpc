@@ -46,7 +46,17 @@ public:
         , _http_headers(NULL)
     {}
 
-    virtual ~RpcControllerImpl() {}
+    virtual ~RpcControllerImpl() 
+    {
+        if(_span)
+        {
+            _span->SetTag("error_code", _error_code);
+            if (Failed())
+            {
+                _span->SetTag("error", true);
+            }
+        }
+    }
 
     void SetRequestCompressType(CompressType compress_type)
     {
@@ -226,10 +236,6 @@ public:
                 callback(shared_from_this());
                 _done_callbacks.pop_back();
             }
-        }
-        if(_span)
-        {
-            _span->SetTag("error", error_code);
         }
     }
 
