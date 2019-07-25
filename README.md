@@ -23,6 +23,7 @@ Wiki: https://github.com/baidu/sofa-pbrpc/wiki
 * Supports http protocol.
 * Provides web monitor.
 * Provides python client library.
+* Add opentracing with Jaeger backend
 
 ### Dependencies
 This lib depends on boost-1.53.0 (only need header), protobuf-2.4.1, snappy and zlib:
@@ -37,16 +38,12 @@ Extrally, './unit-test' and './sample/mock_sample' also depends on gtest:
 * gtest - http://code.google.com/p/googletest/
 
 ### Build
-1. Modify the file './depends.mk' to specify depending libs.<br>
-  The necessary libs are boost, protobuf, snappy, and zlib.
-2. Run 'make' to build sofa-pbrpc.<br>
-  The default optimization level is 'O2'.<br>
-  To change it, modify the 'OPT' variable in file './Makefile'.
-3. Run 'make install' to install sofa-pbrpc.<br>
-  The default install directory is './output'.<br>
-  To change it, modify the 'PREFIX' variable in file './Makefile'.
+- git clone https://github.com/billowqiu/sofa-pbrpc.git
+- cd sofa-pbrpc
+- mkdir _build
+- cd _build && cmake ..
+- make
 
-For more details, please refer to the wiki [Build Guide](https://github.com/baidu/sofa-pbrpc/wiki/%E6%9E%84%E5%BB%BA%E6%8C%87%E5%BC%95).
 
 ### Sample
 For sample code, please refer to ['./sample'](https://github.com/baidu/sofa-pbrpc/tree/master/sample) and the wiki [Quick Start](https://github.com/baidu/sofa-pbrpc/wiki/%E5%BF%AB%E9%80%9F%E4%BD%BF%E7%94%A8).
@@ -60,5 +57,17 @@ For performace details, please refer to the wiki [Performance](https://github.co
 ### Implementation
 For implementation details, please refer to the wiki and file [doc/sofa-pbrpc-document.md](doc/sofa-pbrpc-document.md).
 
+### Tracing
+- Follow this [guide](http://billowqiu.github.io/2019/04/11/jaeger-practice/)
+- cd _build
+- cp ../sample/echo/config.yml .
+- ./echoserver 
+- Open an new terminal, ./echoclient_async
+- Open http://127.0.0.1:16686
+
+
+![tracing-search](image/tracing-search.png)
+
+![tracing-detail](image/tracing-detail.png)
 ### Support
 opensearch@baidu.com
