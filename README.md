@@ -23,10 +23,10 @@ Wiki: https://github.com/baidu/sofa-pbrpc/wiki
 * Supports http protocol.
 * Provides web monitor.
 * Provides python client library.
-* Add opentracing with Jaeger backend
+* Supports [opentracing](https://opentracing.io/) with [Jaeger](https://www.jaegertracing.io/) backend
 
 ### Dependencies
-This lib depends on boost-1.53.0 (only need header), protobuf-2.4.1, snappy and zlib:
+This lib depends on boost(only need header), protobuf3, snappy and zlib:
 * boost - http://www.boost.org/
 * protobuf - http://code.google.com/p/protobuf/
 * snappy - http://code.google.com/p/snappy/
@@ -40,6 +40,7 @@ Extrally, './unit-test' and './sample/mock_sample' also depends on gtest:
 ### Build
 - git clone https://github.com/billowqiu/sofa-pbrpc.git
 - cd sofa-pbrpc
+- git submodule update --init
 - mkdir _build
 - cd _build && cmake ..
 - make
