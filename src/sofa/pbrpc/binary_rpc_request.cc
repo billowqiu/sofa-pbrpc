@@ -43,7 +43,9 @@ void BinaryRpcRequest::ProcessRequest(
     if (_req_meta.has_telemetry())
     {
         jaegertracing::SpanContext::StrMap baggage;
-        baggage.insert(_req_meta.telemetry().baggage().begin(), _req_meta.telemetry().baggage().end());
+        for(const auto& kv : _req_meta.telemetry().baggage()) {
+            baggage[kv.first] = kv.second;
+        }
 
         jaegertracing::SpanContext spancontext(jaegertracing::TraceID(_req_meta.telemetry().trace_high_id(), _req_meta.telemetry().trace_low_id()),
                                                 _req_meta.telemetry().span_id(), 
