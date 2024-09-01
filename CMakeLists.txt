@@ -12,9 +12,13 @@ set(HUNTER_CONFIGURATION_TYPES "Release;Debug" CACHE STRING
 # include(CMakeDependentOption)
 include(HunterGate)
 
+option(HUNTER_STATUS_DEBUG "Print a lot of info" ON)
+set(HUNTER_DISABLE_BUILDS NO)
+
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.23.165.tar.gz"
-    SHA1 "5a73f91df5f6109c0bb1104d0c0ee423f7bece79"
+    URL "https://github.com/cpp-pm/hunter/archive/v0.25.5.tar.gz"
+    SHA1 "a20151e4c0740ee7d0f9994476856d813cdead29"
+    FILEPATH ${CMAKE_CURRENT_SOURCE_DIR}/config.cmake
 )
 project(sofa-pbrpc VERSION 0.5.0)
 
@@ -47,17 +51,15 @@ else()
   set(hunter_config "")
 endif()
 
-set(package_deps)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
-   CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.9")
-  message(FATAL_ERROR "Must use gcc >= 4.9")
+   CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.8")
+  message(FATAL_ERROR "Must use gcc >= 4.8")
 endif()
 
 hunter_add_package(Boost)
 find_package(Boost ${hunter_config} REQUIRED)
 list(APPEND LIBS Boost::boost)
-list(APPEND package_deps Boost)
 
 hunter_add_package(Protobuf)
 find_package(Protobuf CONFIG REQUIRED)
@@ -66,12 +68,10 @@ list(APPEND LIBS protobuf::libprotobuf)
 hunter_add_package(Snappy)
 find_package(Snappy CONFIG REQUIRED)
 list(APPEND LIBS Snappy::snappy)
-list(APPEND package_deps Snappy)
 
 hunter_add_package(ZLIB)
 find_package(ZLIB CONFIG REQUIRED)
 list(APPEND LIBS ZLIB::zlib)
-list(APPEND package_deps ZLIB)
 
 #jaeger-client-cpp
 add_subdirectory(deps/jaeger-client-cpp)
@@ -191,9 +191,6 @@ endfunction()
 add_library(sofa-pbrpc STATIC ${SRC})
 set_target_properties(sofa-pbrpc PROPERTIES OUTPUT_NAME sofa-pbrpc)
 add_lib_deps(sofa-pbrpc)
-if(NOT SOFA-PBRPC_LIB)
-  set(SOFA-PBRPC_LIB sofa-pbrpc)
-endif()
 list(APPEND SOFA-PBRPC_LIB sofa-pbrpc)
 
 add_custom_command(
